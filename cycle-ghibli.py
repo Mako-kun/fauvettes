@@ -6,61 +6,38 @@ import requests
 import json
 
 dates = []
-films = []
+programmation = ['ARRIETTY, LE PETIT MONDE DES CHAPARDEURS',
+ 'LA COLLINE AUX COQUELICOTS',
+ 'LES CONTES DE TERREMER',
+ 'LE CHÂTEAU AMBULANT',
+ 'LE VENT SE LEVE',
+ 'LE VOYAGE DE CHIHIRO',
+ 'PONYO SUR LA FALAISE',
+ 'PORCO ROSSO',
+ 'PRINCESSE MONONOKE',
+ 'LE ROYAUME DES CHATS',
+ 'MES VOISINS LES YAMADA',
+ 'MON VOISIN TOTORO']
+
+ids = [5312, 6609, 2656, 716, 9868, 515, 3805, 11868, 583, 246, None, 731]
 
 baseSite = "http://www.cinemalesfauvettes.com/"
 
 r = requests.get(baseSite)
 soup = BeautifulSoup(r.text, 'html.parser')
 for date in soup.find(class_="menu-seance").find_all('li'):
-    # print (time.strptime(date["data-date-sql"], "%Y-%m-%d"))
-    dates.append(time.strptime(date["data-date-sql"], "%Y-%m-%d"))
-    
-# for date in dates:
-#     print (time.strftime("%Y-%m-%d", date))
-    
-r = requests.get(baseSite+"index.php?do=ajax/fetchMoreFilmsCycle&start=0&limit=15&cycle-id=16")
-soup = BeautifulSoup(r.text, "html.parser")
+    dates.append(date["data-date-sql"])
 
-# print(r.text)
-print(json.load(r))
-
-# print(movieDict)
-
-# for idx, filmDiv in enumerate(soup["html"].find_all(class_="content-b")):
-    # link = filmDiv.a["href"]
-    # title = filmDiv.find(class_="libelle-small").string
-    # print (link)
-
-# for idx, filmDiv in enumerate(soup.find_all("li"), start=0):
-#     if (idx == 0):
-#         continue
-#
-#     link = filmDiv.a["href"]
-#     title = filmDiv.find(class_="libelle-small").string
-#
-#     r = requests.get(link)
-#     soup = BeautifulSoup(r.text, "html.parser")
-#
-#     idDist = None
-#     try:
-#         if (soup.find(id="seance-film")):
-#             idDist = soup.find(id="seance-film").find("ul", class_="les-jours")["data-film-id"]
-#     except:
-#         pass
-#
-#     contentDiv = soup.find(class_="film-content")
-#
-#     films.append(Film(
-#         idDist,
-#         title,
-#         link
-#     ))
-#
-# filmsDiff = []
-# for film in films:
-#     if (film.idDist != None):
-#         filmsDiff.append(film)
-#
-# filmsNext = list(set(films) - set(filmsDiff))
-# filmsNext = sorted(filmsNext, key=lambda x: x.title)
+for indexFilm, film in enumerate(programmation):
+    # print ("Séances pour \""+film+"\" :")
+    if (ids[indexFilm]):
+        for indexDate, date in enumerate(dates):
+            r = requests.post(baseSite+"index.php?do=ajax/fetchSeancesByDayAndFilm", {"filmId":str(ids[indexFilm]), "date":dates[indexDate]})
+            movieDict = json.loads(r.text)
+            seances = movieDict["progs"]
+            if (seances):
+                for seance in seances:
+                    print (date+" "+seance['heureDebut']+" "+film+" ; "+"Les Fauvettes ; "+seance["version"])
+    # else:
+        # print ("Pas de séance pour ce film.\n")
+    # print ("")
